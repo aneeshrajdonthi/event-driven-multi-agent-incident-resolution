@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: incident-agent
+  namespace: incident-resolution
+  labels:
+    app: incident-agent
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: incident-agent
+  template:
+    metadata:
+      labels:
+        app: incident-agent
+    spec:
+      containers:
+        - name: incident-agent
+          image: incident-resolution-app:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka.incident-resolution.svc.cluster.local:9092"
+            - name: QDRANT_HOST
+              value: "qdrant.incident-resolution.svc.cluster.local"
+            - name: QDRANT_PORT
+              value: "6333"
+            - name: QDRANT_GRPC_PORT
+              value: "6334"
+            - name: REDIS_URL
+              value: "redis://redis.incident-resolution.svc.cluster.local:6379/0"
+            - name: VLLM_API_URL
+              value: "http://vllm.incident-resolution.svc.cluster.local:8001/v1"
+            - name: MODEL_NAME
+              value: "meta-llama/Llama-3.1-8B-Instruct"
+            - name: LORA_ADAPTER_PATH
+              value: "/models/lora-adapter"
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: incident-agent-secrets
+                  key: gemini-api-key
+            - name: APP_HOST
+              value: "0.0.0.0"
+            - name: APP_PORT
+              value: "8000"
+            - name: APP_LOG_LEVEL
+              value: "info"
+            - name: APP_WORKERS
+              value: "1"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: incident-agent
+  namespace: incident-resolution
+  labels:
+    app: incident-agent
+spec:
+  selector:
+    app: incident-agent
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP

@@ -1,0 +1,124 @@
+[
+  {
+    "incident_id": "INC-001",
+    "title": "High CPU on order-service",
+    "description": "order-service CPU sustained above 95% for 10+ minutes during peak traffic.",
+    "events": [
+      {"service_name": "order-service", "metric_name": "cpu_usage_percent", "value": 97.3, "timestamp": "2026-11-13T14:00:00Z", "severity": "critical", "trace_id": "abc001", "metadata": {"host": "host-1", "pod": "order-service-7f8b4-xk9lm"}},
+      {"service_name": "order-service", "metric_name": "cpu_usage_percent", "value": 98.1, "timestamp": "2026-11-13T14:05:00Z", "severity": "critical", "trace_id": "abc002", "metadata": {"host": "host-1"}},
+      {"service_name": "order-service", "metric_name": "request_latency_ms", "value": 4500.0, "timestamp": "2026-11-13T14:05:30Z", "severity": "error", "trace_id": "abc003", "metadata": {"endpoint": "/api/orders"}}
+    ]
+  },
+  {
+    "incident_id": "INC-002",
+    "title": "Memory leak in payment-service",
+    "description": "payment-service RSS grows monotonically and OOM-killed every ~6 hours.",
+    "events": [
+      {"service_name": "payment-service", "metric_name": "memory_usage_mb", "value": 7800.0, "timestamp": "2026-11-13T08:00:00Z", "severity": "error", "trace_id": "def001", "metadata": {"host": "host-3"}},
+      {"service_name": "payment-service", "metric_name": "memory_usage_mb", "value": 7950.0, "timestamp": "2026-11-13T08:30:00Z", "severity": "critical", "trace_id": "def002", "metadata": {"host": "host-3"}},
+      {"service_name": "payment-service", "metric_name": "gc_pause_ms", "value": 2800.0, "timestamp": "2026-11-13T08:31:00Z", "severity": "critical", "trace_id": "def003", "metadata": {"gc_gen": 2}}
+    ]
+  },
+  {
+    "incident_id": "INC-003",
+    "title": "5xx spike on gateway-service",
+    "description": "HTTP 5xx rate exceeded 30% on the API gateway during deployment.",
+    "events": [
+      {"service_name": "gateway-service", "metric_name": "http_5xx_rate", "value": 35.2, "timestamp": "2026-11-12T16:10:00Z", "severity": "critical", "trace_id": "ghi001", "metadata": {"status_code": 502}},
+      {"service_name": "gateway-service", "metric_name": "http_5xx_rate", "value": 28.7, "timestamp": "2026-11-12T16:15:00Z", "severity": "error", "trace_id": "ghi002", "metadata": {"status_code": 503}},
+      {"service_name": "order-service", "metric_name": "request_latency_ms", "value": 3200.0, "timestamp": "2026-11-12T16:12:00Z", "severity": "error", "trace_id": "ghi003", "metadata": {"upstream": "order-service"}}
+    ]
+  },
+  {
+    "incident_id": "INC-004",
+    "title": "Latency spike on inventory-service",
+    "description": "P99 latency jumped from 50ms to 4s on inventory lookups.",
+    "events": [
+      {"service_name": "inventory-service", "metric_name": "request_latency_ms", "value": 4100.0, "timestamp": "2026-11-13T11:00:00Z", "severity": "critical", "trace_id": "jkl001", "metadata": {"endpoint": "/api/inventory/check"}},
+      {"service_name": "inventory-service", "metric_name": "cpu_usage_percent", "value": 45.0, "timestamp": "2026-11-13T11:00:30Z", "severity": "warning", "trace_id": "jkl002", "metadata": {}},
+      {"service_name": "inventory-service", "metric_name": "connection_pool_active", "value": 195.0, "timestamp": "2026-11-13T11:01:00Z", "severity": "critical", "trace_id": "jkl003", "metadata": {"pool_max": 200}}
+    ]
+  },
+  {
+    "incident_id": "INC-005",
+    "title": "Connection pool exhaustion on payment-service",
+    "description": "Database connection pool saturated — new requests queued indefinitely.",
+    "events": [
+      {"service_name": "payment-service", "metric_name": "connection_pool_active", "value": 200.0, "timestamp": "2026-11-12T22:00:00Z", "severity": "critical", "trace_id": "mno001", "metadata": {"pool_max": 200, "waiting": 47}},
+      {"service_name": "payment-service", "metric_name": "request_latency_ms", "value": 4800.0, "timestamp": "2026-11-12T22:01:00Z", "severity": "critical", "trace_id": "mno002", "metadata": {"endpoint": "/api/payments/charge"}},
+      {"service_name": "payment-service", "metric_name": "http_5xx_rate", "value": 22.5, "timestamp": "2026-11-12T22:02:00Z", "severity": "error", "trace_id": "mno003", "metadata": {"status_code": 503}}
+    ]
+  },
+  {
+    "incident_id": "INC-006",
+    "title": "OOM kills on notification-service",
+    "description": "notification-service pods repeatedly OOM-killed processing large email batches.",
+    "events": [
+      {"service_name": "notification-service", "metric_name": "memory_usage_mb", "value": 8100.0, "timestamp": "2026-11-11T03:00:00Z", "severity": "critical", "trace_id": "pqr001", "metadata": {"oom_kill_count": 3}},
+      {"service_name": "notification-service", "metric_name": "memory_usage_mb", "value": 7900.0, "timestamp": "2026-11-11T03:15:00Z", "severity": "critical", "trace_id": "pqr002", "metadata": {"oom_kill_count": 4}},
+      {"service_name": "notification-service", "metric_name": "cpu_usage_percent", "value": 12.0, "timestamp": "2026-11-11T03:15:30Z", "severity": "info", "trace_id": "pqr003", "metadata": {}}
+    ]
+  },
+  {
+    "incident_id": "INC-007",
+    "title": "Disk pressure on inventory-service",
+    "description": "Disk usage on inventory-service node hit 95%, triggering pod eviction.",
+    "events": [
+      {"service_name": "inventory-service", "metric_name": "disk_usage_percent", "value": 95.4, "timestamp": "2026-11-10T18:00:00Z", "severity": "critical", "trace_id": "stu001", "metadata": {"mount": "/data", "node": "node-5"}},
+      {"service_name": "inventory-service", "metric_name": "disk_usage_percent", "value": 97.1, "timestamp": "2026-11-10T18:30:00Z", "severity": "critical", "trace_id": "stu002", "metadata": {"mount": "/data"}},
+      {"service_name": "inventory-service", "metric_name": "request_latency_ms", "value": 2200.0, "timestamp": "2026-11-10T18:31:00Z", "severity": "error", "trace_id": "stu003", "metadata": {}}
+    ]
+  },
+  {
+    "incident_id": "INC-008",
+    "title": "Cascading failure: gateway → order → payment",
+    "description": "Gateway timeout cascaded to order-service and then payment-service, causing full outage.",
+    "events": [
+      {"service_name": "gateway-service", "metric_name": "http_5xx_rate", "value": 45.0, "timestamp": "2026-11-13T20:00:00Z", "severity": "critical", "trace_id": "vwx001", "metadata": {"status_code": 504}},
+      {"service_name": "order-service", "metric_name": "request_latency_ms", "value": 5000.0, "timestamp": "2026-11-13T20:00:15Z", "severity": "critical", "trace_id": "vwx002", "metadata": {"timeout": true}},
+      {"service_name": "payment-service", "metric_name": "http_5xx_rate", "value": 38.0, "timestamp": "2026-11-13T20:00:30Z", "severity": "critical", "trace_id": "vwx003", "metadata": {"status_code": 503}},
+      {"service_name": "order-service", "metric_name": "connection_pool_active", "value": 200.0, "timestamp": "2026-11-13T20:01:00Z", "severity": "critical", "trace_id": "vwx004", "metadata": {"pool_max": 200}},
+      {"service_name": "notification-service", "metric_name": "http_5xx_rate", "value": 15.0, "timestamp": "2026-11-13T20:02:00Z", "severity": "error", "trace_id": "vwx005", "metadata": {}}
+    ]
+  },
+  {
+    "incident_id": "INC-009",
+    "title": "GC storm on order-service",
+    "description": "Frequent full GC pauses (>2s) causing request timeouts on order-service.",
+    "events": [
+      {"service_name": "order-service", "metric_name": "gc_pause_ms", "value": 2500.0, "timestamp": "2026-11-12T09:00:00Z", "severity": "critical", "trace_id": "yz0001", "metadata": {"gc_gen": 2, "gc_count": 12}},
+      {"service_name": "order-service", "metric_name": "memory_usage_mb", "value": 7200.0, "timestamp": "2026-11-12T09:00:30Z", "severity": "error", "trace_id": "yz0002", "metadata": {}},
+      {"service_name": "order-service", "metric_name": "request_latency_ms", "value": 3800.0, "timestamp": "2026-11-12T09:01:00Z", "severity": "error", "trace_id": "yz0003", "metadata": {"endpoint": "/api/orders"}}
+    ]
+  },
+  {
+    "incident_id": "INC-010",
+    "title": "Notification delivery backlog",
+    "description": "Notification queue depth exceeded 100k; email delivery delayed by 45+ minutes.",
+    "events": [
+      {"service_name": "notification-service", "metric_name": "request_latency_ms", "value": 1800.0, "timestamp": "2026-11-13T06:00:00Z", "severity": "error", "trace_id": "abc101", "metadata": {"queue_depth": 105000}},
+      {"service_name": "notification-service", "metric_name": "cpu_usage_percent", "value": 88.0, "timestamp": "2026-11-13T06:05:00Z", "severity": "error", "trace_id": "abc102", "metadata": {}},
+      {"service_name": "notification-service", "metric_name": "memory_usage_mb", "value": 6500.0, "timestamp": "2026-11-13T06:05:30Z", "severity": "warning", "trace_id": "abc103", "metadata": {}}
+    ]
+  },
+  {
+    "incident_id": "INC-011",
+    "title": "Intermittent DNS resolution failures",
+    "description": "inventory-service intermittently fails to resolve payment-service DNS, causing 5xx bursts.",
+    "events": [
+      {"service_name": "inventory-service", "metric_name": "http_5xx_rate", "value": 18.0, "timestamp": "2026-11-11T12:00:00Z", "severity": "error", "trace_id": "dns001", "metadata": {"error": "NXDOMAIN", "target": "payment-service.svc.cluster.local"}},
+      {"service_name": "inventory-service", "metric_name": "http_5xx_rate", "value": 5.0, "timestamp": "2026-11-11T12:10:00Z", "severity": "warning", "trace_id": "dns002", "metadata": {"error": "timeout"}},
+      {"service_name": "payment-service", "metric_name": "request_latency_ms", "value": 120.0, "timestamp": "2026-11-11T12:10:30Z", "severity": "info", "trace_id": "dns003", "metadata": {}}
+    ]
+  },
+  {
+    "incident_id": "INC-012",
+    "title": "Redis cache stampede",
+    "description": "Cache TTL expiry on hot keys caused thundering herd to payment-service DB.",
+    "events": [
+      {"service_name": "payment-service", "metric_name": "request_latency_ms", "value": 3500.0, "timestamp": "2026-11-14T01:00:00Z", "severity": "critical", "trace_id": "redis01", "metadata": {"cache_miss_rate": 0.92}},
+      {"service_name": "payment-service", "metric_name": "connection_pool_active", "value": 198.0, "timestamp": "2026-11-14T01:00:30Z", "severity": "critical", "trace_id": "redis02", "metadata": {"pool_max": 200}},
+      {"service_name": "payment-service", "metric_name": "cpu_usage_percent", "value": 82.0, "timestamp": "2026-11-14T01:01:00Z", "severity": "error", "trace_id": "redis03", "metadata": {}}
+    ]
+  }
+]

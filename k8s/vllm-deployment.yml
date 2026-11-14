@@ -1,0 +1,133 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vllm-config
+  namespace: incident-resolution
+  labels:
+    app: vllm
+data:
+  MODEL_NAME: "meta-llama/Llama-3.1-8B-Instruct"
+  LORA_ADAPTER_PATH: "/models/lora-adapter"
+  MAX_MODEL_LEN: "4096"
+  GPU_MEMORY_UTILIZATION: "0.9"
+  DTYPE: "auto"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm
+  namespace: incident-resolution
+  labels:
+    app: vllm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm
+  template:
+    metadata:
+      labels:
+        app: vllm
+    spec:
+      containers:
+        - name: vllm
+          image: vllm/vllm-openai:latest
+          ports:
+            - containerPort: 8001
+          env:
+            - name: MODEL_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: vllm-config
+                  key: MODEL_NAME
+            - name: LORA_ADAPTER_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: vllm-config
+                  key: LORA_ADAPTER_PATH
+            - name: MAX_MODEL_LEN
+              valueFrom:
+                configMapKeyRef:
+                  name: vllm-config
+                  key: MAX_MODEL_LEN
+            - name: GPU_MEMORY_UTILIZATION
+              valueFrom:
+                configMapKeyRef:
+                  name: vllm-config
+                  key: GPU_MEMORY_UTILIZATION
+            - name: DTYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: vllm-config
+                  key: DTYPE
+          args:
+            - "--model"
+            - "$(MODEL_NAME)"
+            - "--enable-lora"
+            - "--lora-modules"
+            - "incident-adapter=$(LORA_ADAPTER_PATH)"
+            - "--max-model-len"
+            - "$(MAX_MODEL_LEN)"
+            - "--gpu-memory-utilization"
+            - "$(GPU_MEMORY_UTILIZATION)"
+            - "--dtype"
+            - "$(DTYPE)"
+            - "--port"
+            - "8001"
+          volumeMounts:
+            - name: lora-adapter
+              mountPath: /models/lora-adapter
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 60
+            periodSeconds: 15
+          resources:
+            requests:
+              cpu: "2"
+              memory: 8Gi
+              nvidia.com/gpu: "1"
+            limits:
+              cpu: "4"
+              memory: 16Gi
+              nvidia.com/gpu: "1"
+      volumes:
+        - name: lora-adapter
+          persistentVolumeClaim:
+            claimName: lora-adapter-pvc
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lora-adapter-pvc
+  namespace: incident-resolution
+  labels:
+    app: vllm
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm
+  namespace: incident-resolution
+  labels:
+    app: vllm
+spec:
+  selector:
+    app: vllm
+  ports:
+    - name: http
+      port: 8001
+      targetPort: 8001
+  type: ClusterIP
